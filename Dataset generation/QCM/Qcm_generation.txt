@@ -1,0 +1,119 @@
+import requests
+from bs4 import BeautifulSoup
+import google.generativeai as genai
+from google.colab import drive
+import os
+
+
+drive.mount('/content/drive')
+
+# Function to scrape content from a URL
+def scrape_content(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        return soup.get_text()
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching {url}: {e}")
+        return ""
+
+# Function to generate an answer using the Gemini API
+def generate_answer(prompt, scraped_content, gemini_key):
+    combined_content = f"{prompt}\n\n{scraped_content}"
+
+    if not gemini_key:
+        raise ValueError("API key for Gemini is not set.")
+
+    
+    genai.configure(api_key=gemini_key)
+
+   
+    generation_config = {
+        "temperature": 0.9,
+        "top_p": 1,
+        "top_k": 5,
+        "max_output_tokens": 2048,
+    }
+
+    # Call the generative model with the configured settings
+    model = genai.GenerativeModel(model_name="gemini-1.0-pro", generation_config=generation_config)
+    response = model.generate_content(combined_content)
+
+    # Extract the text from the response
+    if response.candidates and len(response.candidates) > 0:
+        generated_text = response.candidates[0].content.parts[0].text
+    else:
+        generated_text = "No content generated."
+
+    return generated_text
+
+# Function to save the generated text to a text file
+def save_to_text_file(generated_text, filename='question.txt'):
+    filepath = os.path.join('/content/drive/MyDrive/', filename)
+    with open(filepath, 'w', encoding='utf-8') as textfile:
+        textfile.write(generated_text)
+
+# Main function to process input and generate the output
+def main(prompt, urls, api_keys):
+    scraped_content = ""
+    for url in urls:
+        print(f"Scraping content from {url}...")
+        scraped_content += scrape_content(url) + "\n\n"
+
+    if not scraped_content.strip():
+        print("No content scraped from the provided URLs.")
+        return
+
+    for i in range(1000):
+        for key_index, gemini_key in enumerate(api_keys):
+            try:
+                generated_text = generate_answer(prompt, scraped_content, gemini_key)
+                if "No content generated" in generated_text:
+                    raise ValueError("Content generation failed.")
+                print(f"Generated Answer for iteration {i + 1} using API key {key_index + 1}:")
+                print(generated_text)
+                save_to_text_file(generated_text, filename=f'question_{i + 13211}.txt')
+                break  # Exit the loop after a successful generation
+            except Exception as e:
+                print(f"Error with API key {key_index + 1}: {e}")
+                if key_index == len(api_keys) - 1:
+                    print(f"Skipping iteration {i + 1} due to errors with all API keys.")
+
+if __name__ == "__main__":
+   
+    input_prompt = """
+You are a cybersecurity expert specializing in cyber threat intelligence. Given the text below, please
+generate a maximum of 5 multiple-choice questions with four possible options each.
+Follow these requirements:
+1. Question Format: Each question must have four options. The options should be challenging and require
+careful consideration. Avoid creating options that could be interpreted as correct under different circumstances.
+2. Target Audience: The questions should be suitable for security professionals with three to five years of
+experience in cyber threat intelligence. Avoid generic questions such as “What is the objective?”, “Which
+operating system can be targeted?”.
+3. Content Coverage: Aim to cover various sections of the document to ensure a comprehensive evaluation of
+the candidate’s knowledge. Include context-specific questions that require an understanding of the document’s
+content.
+4. Technical Precision: Use precise terminology and concepts relevant to cyber threat intelligence. Incorporate
+situational or scenario-based questions where applicable.
+5. Include Technique IDs and Names: Ensure that all questions, where applicable, mention both the ID and the
+full name of the MITRE ATT&CK pattern technique.
+6. Premise Inclusion: Each question should include a premise indicating it pertains to MITRE ATT&CK,
+specifying the relevant platform (Enterprise, ICS, or Mobile) where necessary.
+7. Output Format: Return the output in text format with these columns:
+Question, Option A, Option B, Option C, Option D, Correct Answer (A, B, C, D), and Explanation.
+Important: Only return the text content."""
+
+    input_urls = [
+       "https://attack.mitre.org/techniques",
+        "https://www.nist.gov/risk-management",
+        "https://cwe.mitre.org/data/definitions/346.html"
+    ]
+    # List of API keys to use
+    api_keys = [
+        "AIzaSyD6xlVBvZZvHjd6DCOUkdRDm4JpNWh9Ma0",
+        "AIzaSyATojIIYnvKks9h41MdYltv_qNrp-xGr-o",
+        "AIzaSyATojIIYnvKks9h41MdYltv_qNrp-xGr-o",
+        ]
+
+    main(input_prompt, input_urls, api_keys)

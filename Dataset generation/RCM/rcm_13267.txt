@@ -1,0 +1,19 @@
+**CVE ID:** CVE-2024-38080
+**Description:** A vulnerability in the Windows Hyper-V component that affects Windows 11 and Windows Server 2022 systems. CVE-2024-38080 allows an attacker to increase their account privileges on a Windows machine.
+**CWE Mapping:** N/A
+**References:** https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-38080
+
+**CVE ID:** CVE-2024-38112
+**Description:** A weakness in MSHTML, the proprietary engine of Microsoft's Internet Explorer web browser. Successful exploitation of this vulnerability requires an attacker to take additional actions prior to exploitation to prepare the target environment.
+**CWE Mapping:** N/A
+**References:** https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-38112
+
+**CVE ID:** CVE-2024-38021
+**Description:** A remote code execution flaw in Microsoft Office. Attacks on this weakness would lead to the disclosure of NTLM hashes, which could be leveraged as part of an NTLM relay or “pass the hash” attack.
+**CWE Mapping:** N/A
+**References:** https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-38021
+
+**CVE ID:** CVE-2024-38053
+**Description:** A security weakness in Windows Layer Two Bridge Network. This is another local network “ping-of-death” vulnerability that should be a priority for road warriors to patch.
+**CWE Mapping:** N/A
+**References:** https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-38053
